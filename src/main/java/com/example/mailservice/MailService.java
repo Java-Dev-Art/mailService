@@ -1,26 +1,52 @@
 package com.example.mailservice;
 
 import java.io.*;
+import java.util.Properties;
 
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;
 import jakarta.servlet.annotation.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-@WebServlet(name = "helloServlet", value = "/hello-servlet")
-public class HelloServlet extends HttpServlet {
-    private String message;
-
+@WebServlet(urlPatterns = {"/mail-servlet"},
+        initParams = { @WebInitParam(name = "mail", value = "veles.mk.12@gmail.com"),
+                        @WebInitParam(name ="mail.smtps.host", value = "smtp.gmail.com"),
+                        @WebInitParam(name = "mail.smtp.port", value = "465"),
+                        @WebInitParam(name = "smtps.auth.user", value = "markouskiehustudy@gmail.com"),
+                        @WebInitParam(name = "smtps.auth.pass", value = "batmczxnrlszdhrn"),
+                        @WebInitParam(name = "mail.transport.protocol", value = "smtps") })
+public class MailService extends HttpServlet {
+    final static Logger log = LogManager.getLogger(MailService.class);
+//    String mail = null;
     public void init() {
-        message = "Hello World!";
+//        ServletConfig config = this.getServletConfig();
+//        mail = config.getInitParameter("mail");
     }
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
         response.setContentType("text/html");
+        log.debug("Start method doPost");
+        Properties properties = new Properties();
+        ServletContext context = getServletContext();
+        ServletConfig config = this.getServletConfig();
+//        String fileName = context.getInitParameter("mail");
+        String fileName = config.getInitParameter("mail");//?
+        log.debug(fileName + " init param init");
+        properties.load(context.getResourceAsStream("/WEB-INF/mail.properties"));
+        System.out.println("afterMAil");
+        MailThread mailThread = new MailThread(
+                request.getParameter("to"),
+                request.getParameter("subject"),
+                request.getParameter("body"),
+                properties);
 
-        // Hello
-        PrintWriter out = response.getWriter();
-        out.println("<html><body>");
-        out.println("<h1>" + message + "</h1>");
-        out.println("</body></html>");
+        mailThread.start();
+        log.debug("start mailThread");
+        request.getRequestDispatcher("/jsp/sending.jsp").forward(request, response);
+
     }
 
     public void destroy() {
