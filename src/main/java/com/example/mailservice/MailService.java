@@ -30,13 +30,11 @@ public class MailService extends HttpServlet {
         response.setContentType("text/html");
         log.debug("Start method doPost");
         Properties properties = new Properties();
-        ServletContext context = getServletContext();
-        ServletConfig config = this.getServletConfig();
-//        String fileName = context.getInitParameter("mail");
-        String fileName = config.getInitParameter("mail");//?
-        log.debug(fileName + " init param init");
+        ServletContext context = getServletContext();//
+        ServletConfig config = this.getServletConfig();//
+
         properties.load(context.getResourceAsStream("/WEB-INF/mail.properties"));
-        System.out.println("afterMAil");
+
         MailThread mailThread = new MailThread(
                 request.getParameter("to"),
                 request.getParameter("subject"),
